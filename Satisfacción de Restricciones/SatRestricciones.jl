@@ -111,7 +111,7 @@ function create_send_more_money_csp()
     # Restricción 1: Todas las variables {s, e, n, d, m, o, r, y} son distintas 
     #    (muchas restricciones binarias)
     letter_vars = [:s, :e, :n, :d, :m, :o, :r, :y]
-    for i in 1:length(letter_vars)
+    for i in (1):length(letter_vars)
         for j in (i+1):length(letter_vars)
             v1 = letter_vars[i]
             v2 = letter_vars[j]
