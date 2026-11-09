@@ -234,3 +234,66 @@ extraer_Vs(s0)
 
 sol, en = SA(energia_cut, s0, 10, vecino_cut, 0.001, 1.0, true)
 extraer_Vs(sol)
+
+#=
+J5 (3 ptos). Haciendo uso de la librería de Templado Simulado, implementa 
+una solución al siguiente problema (en el fichero de descarga se muestra 
+un ejemplo del formato de datos que sirven de entrada):
+
+Un centro de cálculo tiene que distribuir un conjunto de procesos, entre sus unidades de cálculo, 
+que ofrecen una predicción de recursos necesarios para cada uno de los procesos, r(p, c) para cada
+p ∈ P y cada c ∈ C. La distribución de carga debe realizarse de manera que cada unidad de cálculo reciba 
+como máximo k asignaciones (k ⋅ |C| ≥ |P|). Queremos usar Templado Simulado para devolver una solución 
+que minimice los recursos totalesutilizados. Define las estructuras y funciones necesarias en Julia 
+(en el papel, no es necesario que coincidan los tipos conlos definidos en clase, pero ha de tener sentido).
+=#
+
+using Random
+
+num_P = 20
+num_C = 5
+k = 5
+R = rand(10.0:100.0, num_P, num_C)
+
+function energia(s, R, k)
+    num_P, num_C = size(R)
+    coste = 0.0
+    conteo = zeros(Int, num_C)
+    
+    for p in 1:num_P
+        c = s[p]
+        coste += R[p, c]
+        conteo[c] += 1
+    end
+    
+    penalizacion = 0.0
+    for c in 1:num_C
+        if conteo[c] > k
+            penalizacion += (conteo[c] - k) * 10000.0
+        end
+    end
+    
+    return coste + penalizacion
+end
+
+function vecino(s, num_C)
+    nuevo = copy(s)
+    p = rand(1:length(s))
+    c_actual = nuevo[p]
+    nueva_c = rand(1:num_C)
+    while nueva_c == c_actual && num_C > 1
+        nueva_c = rand(1:num_C)
+    end
+    nuevo[p] = nueva_c
+    return nuevo
+end
+
+function solucion(R, k)
+    num_P, num_C = size(R)
+    s0 = rand(1:num_C, num_P)
+    E(s) = energia(s, R, k)
+    V(s) = vecino(s, num_C)
+    return SA(E, s0, 100, V, 0.001, 1.0, true)
+end
+
+mejor_asignacion, mejor_coste = solucion(R, k)
