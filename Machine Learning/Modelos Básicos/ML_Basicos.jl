@@ -1,5 +1,35 @@
-# Distancia Euclidiana entre dos puntos
-dist_euclidiana(x1::Vector, x2::Vector) = sum((x1 .- x2) .^ 2)
+#=====================================================================
+Utilidades
+=====================================================================#
+
+# Centroide de un conjunto de puntos/vectores
+function centroide(D)
+	sum(D)/length(D)
+end
+
+# Distancia euclídea2 (euclídea al cuadrado)
+function eucl2(x, y)
+	# ∑ (xᵢ - yᵢ)²
+	sum((x .- y).^2)
+	# sum( (xi - yi)^2 for (xi, yi) in zip(x, y) )
+	
+end
+
+# distancia euclídea
+function eucl(x, y)
+	sqrt(eucl2(x, y))
+end
+
+# distancia manhattan
+function manh(x, y)
+	# ∑ |xᵢ - yᵢ|
+	sum(abs.(x .- y))
+	# sum( abs(xi - yi) for (xi, yi) in zip(x, y) )
+end
+
+#=====================================================================
+KNN (k-Nearest Neighbors)
+=====================================================================#
 
 """
     knn(k::Int, datos::Vector{Tuple}, x::Vector)
@@ -24,7 +54,7 @@ Ejemplo:
     knn(2, datos, [1.2, 2.1])  # Retorna "A"
 """
 function knn(k::Int, datos::Vector, x::Vector)
-    distancias = [ (dist_euclidiana(x, x_i), y_i) for (x_i, y_i) in datos ]
+    distancias = [ (eucl2(x, x_i), y_i) for (x_i, y_i) in datos ]
     
     # Ordenar por distancia (menor primero)
     sort!(distancias, by = d -> d[1])
@@ -74,7 +104,7 @@ Ejemplo:
 """
 function knn_regresion(k::Int, datos::Vector, x::Vector)   
     # Calcular distancias euclidianas a todos los puntos
-    distancias = [ (dist_euclidiana(x, x_i), y_i) for (x_i, y_i) in datos ]    
+    distancias = [ (eucl2(x, x_i), y_i) for (x_i, y_i) in datos ]    
     
     # Ordenar por distancia (menor primero)
     sort!(distancias, by = d -> d[1])
@@ -101,3 +131,62 @@ function knn_regresion(k::Int, datos::Vector, x::Vector)
     
     return prediccion
 end
+
+#=====================================================================
+K-Medias
+=====================================================================#
+
+#= 
+Define la función `k_medias` que recibe:
+
+* `D`           : Vector de puntos de muestra.
+* `K`           : Número de clusters a buscar.
+* `iter = 100`     : Número de pasos a ejecutar del algoritmo.
+* `dist = eucl2`: distancia que se usará en `D`.
+
+Devuelve una tupla `(C, Cls, pots)`, donde:
+1.  C = [c₁, ..., cₖ] es un vector de los K centroides para los clusters.
+2.  Cls es la colección de K clusters asociados a los centroides de C.
+3.  pots es un vector con los potenciales de cada iteración.
+
+Asignar a cada 1 ≤ i ≤ K el vector de índices de D que forman el cluster de cᵢ. 
+Es decir, si ci está formado por {D[j₁], ..., D[jₙ]}, entonces en el diccionario 
+se asocia la clave i con el conjunto de índices [j₁, ..., jₙ]
+=#
+
+# D: Dataset de Puntos
+# C: Centroides
+# K: |C|
+# iter: Número de iteraciones (por defecto, 100)
+# dist: distancia en D (por defecto, eucl2)
+
+function k_medias(D, K ; iter = 100, dist = eucl2)
+	# Inicialmente, los centroides se sitúan en K puntos al azar de D
+	C   = rand(D, K)
+	N   = length(D)
+	Cls = Dict()
+   pots = []
+	# El algoritmo se ejecuta un número prefijado de pasos
+	for _ in 1:iter
+		# Cls es un diccionario de K clusters, inicialmente, vacíos
+		Cls = Dict( [k => [] for k in 1:K] )
+		# Decidimos el cluster en el que meter cada elemento de D (el índice)
+		for i in 1:N
+			push!( Cls[argmin([dist(D[i], c) for c in C])], i)
+		end
+		# Calculamos los nuevos centroides por el contenido de los clusters
+      # y los potenciales asociados
+      pot = 0
+		for k in 1:K
+			if !isempty( Cls[k] )
+				C[k] = centroide( D[i] for i in Cls[k] )
+            pot = pot + sum( [ dist(D[j], C[k])^2 for j in Cls[k] ] )
+			end
+		end
+		push!(pots, pot)
+	end
+	# Devolvemos Clusters y centroides
+	return (C, Cls, pots)
+end
+
+println("Algoritmos Básicos cargados correctamente")
