@@ -1,4 +1,4 @@
-include("../ML.jl")
+include("../Fundamentos Teóricos/ML.jl")
 include("ML_Basicos.jl")
 using Statistics
 using LinearAlgebra

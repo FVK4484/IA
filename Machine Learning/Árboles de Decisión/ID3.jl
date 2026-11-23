@@ -4,10 +4,6 @@ using CSV
 using Plots
 using Random
 using Statistics
-
-# Reutilizar utilidades generales de partición y evaluación.
-include(joinpath(@__DIR__, "..", "ML.jl"))
-
 ##########################
 ## Funciones Auxiliares ##
 ##########################
